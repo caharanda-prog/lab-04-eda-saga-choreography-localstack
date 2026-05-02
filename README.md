@@ -106,3 +106,129 @@ This provides:
 
 This log acts as a lightweight projection of the system state, enabling easier debugging, analysis, and validation of the saga lifecycle.
 
+## 🏗️ Architecture Overview
+
+The system is built using an event-driven architecture based on AWS SNS and SQS (via LocalStack).
+
+* **SNS Topics** act as event channels
+* **SQS Queues** decouple services and ensure reliable message delivery
+* Each service consumes events from its queue and emits new events to a topic
+
+### 🔄 Event Flow
+
+```text
+Order → SNS (orders_events)
+       ↓
+   Inventory Service
+       ↓
+SNS (inventory_events)
+       ↓
+   Payment Service
+       ↓
+SNS (payment_events)
+       ↓
+   Order Service
+```
+
+### 🔁 Compensation Flow (Failure Handling)
+
+```text
+PaymentFailed
+   ↓
+InventoryReleaseRequested
+   ↓
+InventoryReleased
+   ↓
+OrderCancelled
+```
+
+---
+
+## ⚙️ Tech Stack
+
+* Terraform
+* LocalStack
+* AWS CLI
+* Python (boto3)
+* Docker
+
+---
+
+
+## 📁 Project Structure
+
+```text
+.
+├── terraform/
+│   ├── provider.tf
+│   ├── sns.tf
+│   ├── sqs.tf
+│   ├── dlq.tf
+│   └── subscriptions.tf
+│
+├── services/
+│   ├── order_consumer.py
+│   ├── inventory_consumer.py
+│   ├── payment_consumer.py
+│   └── audit_consumer.py
+│
+├── producer/
+│   └── order_producer.py
+│
+├── scripts/
+│   └── start_consumers.ps1
+│
+├── completed_sagas.json
+└── README.md
+```
+
+---
+
+## ⚙️ How to Run
+
+### 1. Start LocalStack
+
+```bash
+docker run -d -p 4566:4566 localstack/localstack
+```
+
+---
+
+### 2. Deploy Infrastructure (Terraform)
+
+```bash
+terraform init
+terraform apply -auto-approve
+```
+
+---
+
+### 3. Start Consumers
+
+```powershell
+./scripts/start_consumers.ps1
+```
+
+---
+
+### 4. Run Producer
+
+```bash
+python -m producer.order_producer
+```
+
+---
+
+## 🧠 Key Concepts Demonstrated
+
+* Event-Driven Architecture (EDA)
+* Saga Pattern (Choreography)
+* Eventual Consistency
+* Asynchronous Communication
+* Compensation Transactions
+* Distributed State Tracking (Projection)
+* Out-of-Order Event Handling
+
+---
+
+
