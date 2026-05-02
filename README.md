@@ -101,10 +101,9 @@ This provides:
     "completedAt": "2026-05-02T14:58:00.866462"
   }
 ```
+This log acts as a lightweight projection of the system state, enabling easier debugging, analysis, and validation of the saga lifecycle.
 
 ---
-
-This log acts as a lightweight projection of the system state, enabling easier debugging, analysis, and validation of the saga lifecycle.
 
 ## 🏗️ Architecture Overview
 
@@ -210,12 +209,24 @@ terraform apply -auto-approve
 ```
 
 ---
-
 ### 4. Run Producer
 
 ```bash
 python -m producer.order_producer
 ```
+
+### 🔁 Re-running Tests (Without Recreating Infrastructure)
+
+If you want to run the simulation again, there is no need to destroy and recreate the infrastructure.
+
+You can simply purge all queues and execute the producer again:
+
+```powershell
+$q="inventory-queue","payment-queue","audit-trace-queue","order-queue"; foreach ($queue in $q) { aws --endpoint-url=http://localhost:4566 sqs purge-queue --queue-url "http://localhost:4566/000000000000/$queue" }
+```
+
+This will clean all pending messages and allow you to run a fresh test scenario.
+
 
 ---
 
